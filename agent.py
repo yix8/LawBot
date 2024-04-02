@@ -190,7 +190,6 @@ if __name__ == '__main__':
     #print(agent.generic_func('Who are you? What is linear regression?'))
     #print(agent.retrival_func('Introduce the team members'))
     
-    # print(agent.graph_func('鼻炎怎么治疗？'))
     #print(agent.search_func('what is the game gbf?'))
     #print(agent.query("What is the background of the team?"))
     # print(agent.query("Which is the biggest animial in the world?"))
