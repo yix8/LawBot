@@ -2,6 +2,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
 from py2neo import Graph
 from config import *
+import cohere
 
 import os
 from dotenv import load_dotenv
@@ -55,6 +56,36 @@ def get_neo4j_conn():
         os.getenv('NEO4J_URI'), 
         auth = (os.getenv('NEO4J_USERNAME'), os.getenv('NEO4J_PASSWORD'))
     )
+
+def get_high_docs_score(query, docs, top_n=5, threshold=0.7):
+    """get documents and scores with high relevancy
+    ---
+    output: a list of document text where score > threshold and a list of document text where score <= threshold
+    """
+    co = cohere.Client(os.getenv('COHERE_RERANK_KEY'))
+    res = co.rerank(query=query, documents=docs, top_n=top_n,
+                    model=os.getenv('COHERE_RERANK_MODEL'), return_documents=True)
+    high_score_docs = [r.document.text for r in res.results if r.relevance_score > threshold]
+    rest_docs = [r.document.text for r in res.results if r.relevance_score <= threshold]
+
+    return high_score_docs, rest_docs
+
+def get_rerank_documents(query, list_of_docs, min_n=3, top_n=5, threshold=0.7):
+    """get documents in reranked order
+    ---
+    input:
+    min_n: minimum documents returned
+    ---
+    output:
+    list of reordered documents
+    """
+    assert(min_n <= top_n)
+    high_score_docs, rest_docs = get_high_docs_score(query, list_of_docs, top_n, threshold)
+    if len(high_score_docs) < min_n:
+        candidate_docs = high_score_docs + rest_docs[:min_n - len(high_score_docs)]
+    else:
+        candidate_docs = high_score_docs
+    return candidate_docs
 
 OPENAI_PRICING = {
     "gpt-3.5-turbo": {"prompt": 0.0015, "completion": 0.002},

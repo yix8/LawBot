@@ -33,13 +33,8 @@ class Agent():
         # Retrieve and filter documents based on the given query.
         documents = sorted(self.vdb.similarity_search_with_relevance_scores(query, k=5), key=lambda doc: doc[1], reverse=True)
 
-        high_score_docs  = [doc[0].page_content for doc in documents if doc[1]>0.7]
-
-        if len(high_score_docs) < 3:
-            fill_docs = [doc[0].page_content for doc in documents[len(high_score_docs):3]]
-            query_result = high_score_docs + fill_docs
-        else:
-            query_result = high_score_docs
+        docs = [doc[0].page_content for doc in documents]
+        query_result = get_rerank_documents(query, docs, min_n=3, top_n=5, threshold=0.7)
 
         # Fill in the prompt template and summarize the answer.
         prompt = PromptTemplate.from_template(RETRIVAL_PROMPT_TPL)
@@ -193,4 +188,5 @@ if __name__ == '__main__':
     #print(agent.search_func('what is the game gbf?'))
     #print(agent.query("What is the background of the team?"))
     # print(agent.query("Which is the biggest animial in the world?"))
-    print(agent.query("What is the current time, use google?"))
+    # print(agent.query("What is the current time, use google?"))
+    print(agent.retrival_func('x', 'tell me about UCL'))
