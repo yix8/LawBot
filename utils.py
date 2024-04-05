@@ -16,6 +16,9 @@ def get_embeddings_model():
     }
     return model_map.get(os.getenv('EMBEDDINGS_MODEL'))
 
+def get_law_embeddings_model():
+    return os.getenv('LAW_EMBEDDINGS_MODEL')
+
 def get_llm_model():
     model_map = {
         'openai': ChatOpenAI(
@@ -43,7 +46,6 @@ def structured_output_parser(response_schemas):
     instruction_text = "```json\n" + instruction_text + "```\n"
     
     return instruction_text
-
 
 def replace_token_in_string(string, slots):
     for key, value in slots:

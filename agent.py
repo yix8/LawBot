@@ -12,12 +12,20 @@ from langchain.agents import ZeroShotAgent, AgentExecutor, Tool, create_react_ag
 from langchain.memory import ConversationBufferMemory
 from langchain.output_parsers import ResponseSchema, StructuredOutputParser
 from langchain import hub
+from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 
 class Agent():
     def __init__(self):
         self.vdb = Chroma(
             persist_directory = os.path.join(os.path.dirname(__file__), './data/db'), 
             embedding_function = get_embeddings_model()
+        )
+
+        self.embedding_function = SentenceTransformerEmbeddings(model_name=get_law_embeddings_model())
+
+        self.lawdb = Chroma(
+            persist_directory = os.path.join(os.path.dirname(__file__), './data/laws_db_1000'), 
+            embedding_function = self.embedding_function
         )
 
     def generic_func(self, x, query):
@@ -54,83 +62,31 @@ class Agent():
         }
         return retrival_chain.invoke(inputs)['text']
 
-    def graph_func(self, x, query):
-        # Entity information extraction
-        response_schemas = [
-            ResponseSchema(type='list', name='disease', description='疾病名称实体'),
-            ResponseSchema(type='list', name='symptom', description='疾病症状实体'),
-            ResponseSchema(type='list', name='drug', description='药品名称实体'),
-        ]
+    def retrival_law_func(self, x, query):
+        # Retrieve and filter documents based on the given query.
+        documents = sorted(self.lawdb.similarity_search_with_relevance_scores(query, k=5), key=lambda doc: doc[1], reverse=True)
 
-        output_parser = StructuredOutputParser(response_schemas=response_schemas)
-        format_instructions = structured_output_parser(response_schemas)
+        high_score_docs  = [doc[0].page_content for doc in documents]
 
-        ner_prompt = PromptTemplate(
-            template = NER_PROMPT_TPL,
-            partial_variables = {'format_instructions': format_instructions},
-            input_variables = ['query']
-        )
+        if len(high_score_docs) < 3:
+            fill_docs = [doc[0].page_content for doc in documents[len(high_score_docs):3]]
+            query_result = high_score_docs + fill_docs
+        else:
+            query_result = high_score_docs
 
-        ner_chain = LLMChain(
-            llm = get_llm_model(),
-            prompt = ner_prompt,
-            verbose = os.getenv('VERBOSE')
-        )
-
-        result = ner_chain.invoke({
-            'query': query
-        })['text']
-        
-        ner_result = output_parser.parse(result)
-
-        graph_templates = []
-        for key, template in GRAPH_TEMPLATE.items():
-            slot = template['slots'][0]
-            slot_values = ner_result[slot]
-            for value in slot_values:
-                graph_templates.append({
-                    'question': replace_token_in_string(template['question'], [[slot, value]]),
-                    'cypher': replace_token_in_string(template['cypher'], [[slot, value]]),
-                    'answer': replace_token_in_string(template['answer'], [[slot, value]]),
-                })
-        if not graph_templates:
-            return 
-        
-        graph_documents = [
-            Document(page_content=template['question'], metadata=template)
-            for template in graph_templates
-        ]
-        db = FAISS.from_documents(graph_documents, get_embeddings_model())
-        graph_documents_filter = db.similarity_search_with_relevance_scores(query, k=3)
-        print(graph_documents_filter)
-
-        query_result = []
-        neo4j_conn = get_neo4j_conn()
-        for document in graph_documents_filter:
-            question = document[0].page_content
-            cypher = document[0].metadata['cypher']
-            answer = document[0].metadata['answer']
-            try:
-                result = neo4j_conn.run(cypher).data()
-                if result and any(value for value in result[0].values()):
-                    answer_str = replace_token_in_string(answer, list(result[0].items()))
-                    query_result.append(f'Question: {question}\nAnswer:{answer_str}')
-            except:
-                pass
-        print(query_result)
-            
-        prompt = PromptTemplate.from_template(GRAPH_PROMPT_TPL)
-        graph_chain = LLMChain(
+        # Fill in the prompt template and summarize the answer.
+        prompt = PromptTemplate.from_template(RETRIVAL_PROMPT_TPL)
+        retrival_chain = LLMChain(
             llm = get_llm_model(),
             prompt = prompt,
             verbose = os.getenv('VERBOSE')
         )
         inputs = {
             'query': query,
-            'query_result': '\n\n'.join(query_result) if len(query_result) else 'Empty.'
+            'query_result': '\n\n'.join(query_result) if len(query_result) else 'Knowledge not found.'
         }
-        return graph_chain.invoke(inputs)['text']
-    
+        return retrival_chain.invoke(inputs)['text']
+
     def search_func(self, query):
         prompt = PromptTemplate.from_template(SEARCH_PROMPT_TPL)
         llm_chain = LLMChain(
@@ -161,9 +117,9 @@ class Agent():
                 description = 'Responds to questions related to developer background and similar topics such as team members or contactions.',
             ),
             Tool(
-                name = 'graph_func',
-                func = lambda x: self.graph_func(x, query),
-                description = 'Addresses medical-related inquiries, including diseases, symptoms, and medications.',
+                name = 'retrival_law_func',
+                func = lambda x: self.retrival_law_func(x, query),
+                description = 'Handling consultations on legal matters, including criminal law, constitutional law, civil law, social law, economic law, administrative law, and local regulations among other legal issues.',
             ),
             Tool(
                 name = 'search_func',
@@ -188,9 +144,12 @@ class Agent():
 if __name__ == '__main__':
     agent = Agent()
     #print(agent.generic_func('Who are you? What is linear regression?'))
-    #print(agent.retrival_func('Introduce the team members'))
+    print(agent.query('Introduce the team members'))
     
     #print(agent.search_func('what is the game gbf?'))
     #print(agent.query("What is the background of the team?"))
     # print(agent.query("Which is the biggest animial in the world?"))
-    print(agent.query("What is the current time, use google?"))
+    # print(agent.query("What is the current time, use google?"))
+    # print(agent.query("在中国, 结婚的法定年龄是多少岁, 依据是什么?"))
+    # print(agent.query("我是一个中国妇女, 我有一个6个月的小孩, 我老公想跟我离婚, 根据民法典, 我能拒绝离婚吗?"))
+    # print(agent.query("我是一个中国妇女, 我有一个6个月的小孩, 我老公想跟我离婚, 根据民法典第一千零八十二条, 他能提出离婚吗?"))
