@@ -2,8 +2,8 @@ cohere
 langchainhub
 gradio
 openai
-langchain-core
 langchain
+langchain-core
 langchain_community
 langchain_openai
 pandas
