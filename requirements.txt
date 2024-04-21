@@ -1,12 +1,13 @@
 cohere
-langchainhub
 gradio
 openai
 langchain
 langchain-core
 langchain_community
 langchain_openai
+langchainhub
 pandas
 python-dotenv
 chromadb
 rank_bm25
+sentence_transformers
