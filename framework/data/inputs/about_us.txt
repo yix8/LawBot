@@ -1,0 +1,7 @@
+Our team, NO GPT NO LIFE, from UCL COMP0087: Statistical Natural Language Processing, has proposed on an innovative framework LawBot to harness the capabilities of Large Language Models (LLMs) for domain-specific applications. We have developed a framework that seamlessly adapts LLMs to specialized domains without the need for extensive finetuning of large models. 
+
+To address the issue of hallucinations in model-generated responses, we have integrated the Retrieval-Augmented Generation (RAG) model for knowledge retrieval, further enhanced by various advanced retrieval techniques to improve the accuracy of the LLM's generated answers. This innovative approach allows our framework to equip LLMs with domain-specific knowledge effectively, ensuring the generation of precise and reliable outputs.
+
+Furthermore, our framework is engineered with user-friendliness in mind, enabling effortless database updates to maintain the timeliness and relevance of the information. This aspect ensures that the applications built on our framework can stay current with the latest developments in their respective domains.
+
+As a result, we have successfully created a framework that not only endows LLMs with specific domain knowledge without the need for model retraining but also offers a user-friendly agent for database updates, thereby ensuring the practicality and applicability of our solution in real-world scenarios.
