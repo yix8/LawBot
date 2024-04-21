@@ -39,6 +39,7 @@ torchrun --nproc_per_node 1 \
 In this example, we show how to do fine-tuning with the FlagEmbedding libiary.
 
 ## Train
+```bash
 torchrun --nproc_per_node 1 \
 -m FlagEmbedding.baai_general_embedding.finetune.run \
 --output_dir ./finetune_model \
@@ -58,3 +59,4 @@ torchrun --nproc_per_node 1 \
 --logging_steps 10 \
 --save_steps 1000 \
 --query_instruction_for_retrieval ""
+```
