@@ -6,7 +6,8 @@ from langchain.vectorstores.chroma import Chroma
 from utils import *
 
 if __name__ == '__main__':
-    df = pd.read_json('contents_repeat_index.json')
+    file_path = os.path.join(os.path.dirname(__file__), 'contents_repeat_index.json')
+    df = pd.read_json(file_path)
     
     # generate documents
     documents = []

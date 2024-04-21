@@ -176,4 +176,4 @@ class Agent():
         return agent_executor.invoke({"input": query})['output']
     
 if __name__ == '__main__':
-    agent = Agent()     
+    agent = Agent()

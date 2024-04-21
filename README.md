@@ -3,7 +3,7 @@
 ## Introduction
 LawBot is a simple yet effective framework tailored to specialized legal domains, operational without training. Utilizing Chinese legal and regulatory documents as the knowledge base, LawBot enhances the breadth of retrieval through multi-query generation and hybrid search strategies. It increases precision with metadata filtering and confirms the plausibility of knowledge through context-based reranking. Remarkably, all these procedures are conducted via zero-shot prompting, making LawBot broadly applicable even when LLMs are accessible only through a black-box API.
 
-![LawBot Pipeline](./imgs/pipeline.png)  <!-- Ensure this is a link to an image file, not a PDF -->
+![LawBot Pipeline](./imgs/pipeline.png) 
 
 ## Installation
 
@@ -45,3 +45,7 @@ To interact with the model via a web interface:
    python framework/App.py
    ```
 
+![Interface](./imgs/Article_Recitation.png) 
+
+## China Law Query Synthetic
+We also proposed an open-source QA dataset, the [Chinese Legal Question Answering dataset (CLQS)](CLQS/qa_full.json) which can be utilized as an instruction dataset.

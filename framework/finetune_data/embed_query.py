@@ -16,7 +16,7 @@ if __name__ == '__main__':
         documents.append(Document(page_content=row['content']))
 
     print(f'Embedding and store nodes.')
-    embedding_function = SentenceTransformerEmbeddings(model_name='./BGE_S_L')
+    embedding_function = SentenceTransformerEmbeddings(model_name=model_path)
 
     # embedding and store
     if documents:
