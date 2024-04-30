@@ -23,7 +23,7 @@ pip install -e .
 ```bash
 torchrun --nproc_per_node 1 \
 -m FlagEmbedding.baai_general_embedding.retromae_pretrain.run \
---output_dir ./pretrain_model \
+--output_dir ./BGE_S_continual_pretrained \
 --model_name_or_path BAAI/bge-small-zh-v1.5 \
 --train_data pretrain.jsonl \
 --learning_rate 2e-5 \
@@ -42,7 +42,7 @@ In this example, we show how to do fine-tuning with the FlagEmbedding libiary.
 ```bash
 torchrun --nproc_per_node 1 \
 -m FlagEmbedding.baai_general_embedding.finetune.run \
---output_dir ./finetune_model \
+--output_dir ./BGE_S_L \
 --model_name_or_path ./BGE_S_continual_pretrained \
 --train_data ./finetune.jsonl \
 --learning_rate 3e-5 \
